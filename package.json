@@ -1,5 +1,6 @@
 {
     "name": "firebase-activity",
+    "homepage": "https://info340a-w20.github.io/firebase-activity",
     "version": "0.1.0",
     "private": true,
     "dependencies": {
@@ -8,6 +9,7 @@
         "@testing-library/react": "^9.4.1",
         "@testing-library/user-event": "^7.2.1",
         "firebase": "^7.9.3",
+        "gh-pages": "^2.2.0",
         "lodash": "^4.17.15",
         "pvectorjs": "^2.0.3",
         "react": "^16.13.0",
@@ -23,7 +25,8 @@
         "start": "react-scripts start",
         "build": "react-scripts build",
         "test": "react-scripts test",
-        "eject": "react-scripts eject"
+        "eject": "react-scripts eject",
+        "deploy": "npm run build&&gh-pages -d build"
     },
     "eslintConfig": {
         "extends": "react-app"
