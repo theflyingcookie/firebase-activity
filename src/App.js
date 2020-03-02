@@ -1,4 +1,5 @@
 import React from 'react';
+import InlineSVG from 'svg-inline-react';
 import { Controls } from './Controls';
 import { NoiseField } from './NoiseField';
 
@@ -73,12 +74,12 @@ export class App extends React.Component {
             stepLength: controlSettings.stepLength.value,
             lineColor: "#FF0000",
             backgroundColor: "#000000",
-            isSignedIn: false // Local signed-in state.
+            isSignedIn: false, // Local signed-in state.
+            userRef: false
         }
         this.favoritesRef = firebase.database().ref('favorites');
     }
     handleChange(value, key) {
-        console.log(value, key)
         let obj = {};
         obj[key] = value;
         this.setState(obj);
@@ -86,9 +87,13 @@ export class App extends React.Component {
 
     // Listen to the Firebase Auth state and set the local state.
     componentDidMount() {
-        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged(
-            (user) => this.setState({ user: user.uid, isSignedIn: !!user })
-        );
+        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
+            this.setState({ user: user.uid, isSignedIn: !!user, userRef: this.favoritesRef.child(user.uid) })
+            const userRef = this.favoritesRef.child(user.uid);
+            userRef.on("value", (snapshot) => {
+                this.setState({ favorites: snapshot.val() })
+            })
+        })
     }
 
     // Make sure we un-register Firebase observers when the component unmounts.
@@ -99,7 +104,6 @@ export class App extends React.Component {
         const s = new XMLSerializer();
         const svgStr = s.serializeToString(document.querySelector("svg"));
         const userRef = this.favoritesRef.child(this.state.user)
-        console.log(this.state.user);
         userRef.push({
             svg: svgStr
         });
@@ -148,6 +152,11 @@ export class App extends React.Component {
                             lineColor={this.state.lineColor}
                         />
                     </svg >
+                </div>
+                <div>
+                    {this.state.favorites && Object.keys(this.state.favorites).map((d) => {
+                        return <InlineSVG src={this.state.favorites[d].svg} />
+                    })}
                 </div>
             </div>
         );
