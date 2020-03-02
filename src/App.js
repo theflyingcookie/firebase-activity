@@ -2,6 +2,15 @@ import React from 'react';
 import InlineSVG from 'svg-inline-react';
 import { Controls } from './Controls';
 import { NoiseField } from './NoiseField';
+import AppBar from '@material-ui/core/AppBar';
+import Button from '@material-ui/core/Button';
+import Container from '@material-ui/core/Container'
+import {
+  HashRouter as Router,
+  Switch,
+  Route,
+  Link
+} from "react-router-dom";
 
 // Firebase 
 import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
@@ -25,7 +34,7 @@ const uiConfig = {
     // Popup signin flow rather than redirect flow.
     signInFlow: 'popup',
     // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
-    signInSuccessUrl: '/signedIn',
+    signInSuccessUrl: '/',
     // We will display Google and Facebook as auth providers.
     signInOptions: [
         firebase.auth.GoogleAuthProvider.PROVIDER_ID,
@@ -87,9 +96,10 @@ export class App extends React.Component {
 
     // Listen to the Firebase Auth state and set the local state.
     componentDidMount() {
-        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {
-            this.setState({ user: user.uid, isSignedIn: !!user, userRef: this.favoritesRef.child(user.uid) })
-            const userRef = this.favoritesRef.child(user.uid);
+        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {            
+            const user_id = user === null ? "none" : user.uid
+            this.setState({ user: user_id, isSignedIn: !!user, userRef: this.favoritesRef.child(user_id) })            
+            const userRef = this.favoritesRef.child(user_id);
             userRef.on("value", (snapshot) => {
                 this.setState({ favorites: snapshot.val() })
             })
@@ -120,45 +130,67 @@ export class App extends React.Component {
             );
         }
         return (
-            <div style={{ display: "inline-block", margin: "20px" }}>
-                <a style={{ position: "fixed", top: "10px", right: "10px" }} onClick={() => firebase.auth().signOut()}>Sign-out</a>
-
-                <div style={{ display: "inline-block", width: "300px" }}>
-                    <Controls onUpdate={this.handleChange.bind(this)} inputs={controlSettings} />
-
-                    <div style={{ display: "inline-block" }}>
-                        <label htmlFor="color">Line Color</label>
-                        <input defaultValue={this.state.lineColor} type="color" onChange={(event) => this.handleChange(event.target.value, "lineColor")} />
-                    </div>
-
-                    <div style={{ display: "inline-block" }}>
-                        <label htmlFor="color">Background Color</label>
-                        <input type="color" onChange={(event) => this.handleChange(event.target.value, "backgroundColor")} />
-                    </div>
-                    <div>
-                        <button onClick={() => this.save()}>Save</button>
-                    </div>
-                </div>
-
-
-                <div style={{ display: "inline-block", verticalAlign: "Top" }}>
-                    <svg height={height} width={width} >
-                        <rect height={height} width={width} fill={this.state.backgroundColor} />
-                        <NoiseField
-                            num_lines={this.state.num_lines}
-                            max_steps={this.state.max_steps}
-                            stepLength={this.state.stepLength}
-                            noiseScale={this.state.noiseScale}
-                            lineColor={this.state.lineColor}
-                        />
-                    </svg >
-                </div>
+            <Router>
                 <div>
-                    {this.state.favorites && Object.keys(this.state.favorites).map((d) => {
-                        return <InlineSVG src={this.state.favorites[d].svg} />
-                    })}
+                    <AppBar>
+                        <nav>
+                            <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/">Build</Link></Button>
+                            <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/favorites">Favorites</Link></Button>
+                            <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/shared">Shared</Link></Button>
+                            <Button style={{ position: "fixed", right: "10px", color:"white"}} onClick={() => firebase.auth().signOut()}>Sign-out</Button>
+                        </nav>
+                    </AppBar>
+                
+                    <Switch>
+                    <Route path="/favorites">
+                        <div>
+                            {this.state.favorites && Object.keys(this.state.favorites).map((d) => {
+                                return <Container style={{textAlign:"center"}}><InlineSVG src={this.state.favorites[d].svg} /></Container>
+                            })}
+                        </div>
+                    </Route>
+                    <Route path="/shared">
+                        <div>I am on the shared div</div>
+                    </Route>
+                    <Route exact path="/">
+                        <div style={{ display: "inline-block", margin: "20px", marginTop:"50px"}}>
+                            
+                            <div style={{ display: "inline-block", width: "300px" }}>
+                                <Controls onUpdate={this.handleChange.bind(this)} inputs={controlSettings} />
+
+                                <div style={{ display: "inline-block" }}>
+                                    <label htmlFor="color">Line Color</label>
+                                    <input defaultValue={this.state.lineColor} type="color" onChange={(event) => this.handleChange(event.target.value, "lineColor")} />
+                                </div>
+
+                                <div style={{ display: "inline-block" }}>
+                                    <label htmlFor="color">Background Color</label>
+                                    <input type="color" onChange={(event) => this.handleChange(event.target.value, "backgroundColor")} />
+                                </div>
+                                <div>
+                                    <button onClick={() => this.save()}>Save</button>
+                                </div>
+                            </div>
+
+
+                            <div style={{ display: "inline-block", verticalAlign: "Top" }}>
+                                <svg height={height} width={width} >
+                                    <rect height={height} width={width} fill={this.state.backgroundColor} />
+                                    <NoiseField
+                                        num_lines={this.state.num_lines}
+                                        max_steps={this.state.max_steps}
+                                        stepLength={this.state.stepLength}
+                                        noiseScale={this.state.noiseScale}
+                                        lineColor={this.state.lineColor}
+                                    />
+                                </svg >
+                            </div>                            
+                        </div>
+                    </Route>
+                    </Switch>                
                 </div>
-            </div>
+            </Router>
+            
         );
     }
 
