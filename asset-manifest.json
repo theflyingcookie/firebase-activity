@@ -1,14 +1,14 @@
 {
   "files": {
     "main.css": "/firebase-activity/static/css/main.5ecd60fb.chunk.css",
-    "main.js": "/firebase-activity/static/js/main.50eb95c5.chunk.js",
-    "main.js.map": "/firebase-activity/static/js/main.50eb95c5.chunk.js.map",
+    "main.js": "/firebase-activity/static/js/main.68a05d2b.chunk.js",
+    "main.js.map": "/firebase-activity/static/js/main.68a05d2b.chunk.js.map",
     "runtime-main.js": "/firebase-activity/static/js/runtime-main.77e56590.js",
     "runtime-main.js.map": "/firebase-activity/static/js/runtime-main.77e56590.js.map",
     "static/js/2.ccfe1cf3.chunk.js": "/firebase-activity/static/js/2.ccfe1cf3.chunk.js",
     "static/js/2.ccfe1cf3.chunk.js.map": "/firebase-activity/static/js/2.ccfe1cf3.chunk.js.map",
     "index.html": "/firebase-activity/index.html",
-    "precache-manifest.cc3c026ba6c9bba58cfb4ae274a3cef3.js": "/firebase-activity/precache-manifest.cc3c026ba6c9bba58cfb4ae274a3cef3.js",
+    "precache-manifest.6e7a66e25b1ed0b054ad648d300c5652.js": "/firebase-activity/precache-manifest.6e7a66e25b1ed0b054ad648d300c5652.js",
     "service-worker.js": "/firebase-activity/service-worker.js",
     "static/css/main.5ecd60fb.chunk.css.map": "/firebase-activity/static/css/main.5ecd60fb.chunk.css.map",
     "static/js/2.ccfe1cf3.chunk.js.LICENSE.txt": "/firebase-activity/static/js/2.ccfe1cf3.chunk.js.LICENSE.txt"
@@ -17,6 +17,6 @@
     "static/js/runtime-main.77e56590.js",
     "static/js/2.ccfe1cf3.chunk.js",
     "static/css/main.5ecd60fb.chunk.css",
-    "static/js/main.50eb95c5.chunk.js"
+    "static/js/main.68a05d2b.chunk.js"
   ]
 }
