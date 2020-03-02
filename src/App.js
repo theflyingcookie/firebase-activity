@@ -75,6 +75,7 @@ export class App extends React.Component {
             backgroundColor: "#000000",
             isSignedIn: false // Local signed-in state.
         }
+        this.favoritesRef = firebase.database().ref('favorites');
     }
     handleChange(value, key) {
         console.log(value, key)
@@ -86,13 +87,22 @@ export class App extends React.Component {
     // Listen to the Firebase Auth state and set the local state.
     componentDidMount() {
         this.unregisterAuthObserver = firebase.auth().onAuthStateChanged(
-            (user) => this.setState({ isSignedIn: !!user })
+            (user) => this.setState({ user: user.uid, isSignedIn: !!user })
         );
     }
 
     // Make sure we un-register Firebase observers when the component unmounts.
     componentWillUnmount() {
         this.unregisterAuthObserver();
+    }
+    save() {
+        const s = new XMLSerializer();
+        const svgStr = s.serializeToString(document.querySelector("svg"));
+        const userRef = this.favoritesRef.child(this.state.user)
+        console.log(this.state.user);
+        userRef.push({
+            svg: svgStr
+        });
     }
 
     render() {
@@ -120,6 +130,9 @@ export class App extends React.Component {
                     <div style={{ display: "inline-block" }}>
                         <label htmlFor="color">Background Color</label>
                         <input type="color" onChange={(event) => this.handleChange(event.target.value, "backgroundColor")} />
+                    </div>
+                    <div>
+                        <button onClick={() => this.save()}>Save</button>
                     </div>
                 </div>
 
