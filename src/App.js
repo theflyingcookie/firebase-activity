@@ -59,10 +59,12 @@ export class App extends React.Component {
             lineColor: "#FF0000",
             backgroundColor: "#000000",
             isSignedIn: false, // Local signed-in state.
-            userRef: false
         }
         this.favoritesRef = firebase.database().ref('favorites');
         this.publicRef = firebase.database().ref('public');
+        this.publicRef.on("value", (snapshot) => {
+            this.setState({ public: snapshot.val() })
+        })
         this.like = this.like.bind(this);
     }
     handleChange(value, key) {
@@ -79,9 +81,7 @@ export class App extends React.Component {
             userRef.on("value", (snapshot) => {
                 this.setState({ favorites: snapshot.val() })
             })            
-            this.publicRef.on("value", (snapshot) => {
-                this.setState({ public: snapshot.val() })
-            })
+           
         })
     }
 
