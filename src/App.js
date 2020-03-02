@@ -14,35 +14,16 @@ import {
   Link
 } from "react-router-dom";
 
-// Firebase 
-import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
-import firebase from 'firebase';
+// Import firebase and StyledFirebaseAuth
+import firebase from "firebase";
 
-// Configure Firebase.
-const config = {
-    apiKey: "AIzaSyA3Qq8ALZ0RLZyThRCeX1WtyEymYr7zNlU",
-    authDomain: "fir-952d8.firebaseapp.com",
-    databaseURL: "https://fir-952d8.firebaseio.com",
-    projectId: "fir-952d8",
-    storageBucket: "fir-952d8.appspot.com",
-    messagingSenderId: "896239704744",
-    appId: "1:896239704744:web:0eb0d811207267973b409d",
-    measurementId: "G-3HDCV3RNSQ"
-};
-firebase.initializeApp(config);
+// Configure Firebase (get configuration from Firebase Console)
 
-// UI config
-const uiConfig = {
-    // Popup signin flow rather than redirect flow.
-    signInFlow: 'popup',
-    // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
-    signInSuccessUrl: '',
-    // We will display Google and Facebook as auth providers.
-    signInOptions: [
-        firebase.auth.GoogleAuthProvider.PROVIDER_ID,
-        firebase.auth.FacebookAuthProvider.PROVIDER_ID
-    ]
-};
+
+// Initialize your application with the given configuration
+
+
+// Set UI config for sign in (see: https://github.com/firebase/firebaseui-web-react)
 
 const height = 600;
 const width = 900;
@@ -60,70 +41,68 @@ export class App extends React.Component {
             backgroundColor: "#000000",
             isSignedIn: false, // Local signed-in state.
         }
-        this.favoritesRef = firebase.database().ref('favorites');
-        this.publicRef = firebase.database().ref('public');
-        this.publicRef.on("value", (snapshot) => {
-            this.setState({ public: snapshot.val() })
-        })
-        this.like = this.like.bind(this);
+
+        // Store references to 'favories' and 'public'
+        
+        // When the value at the public reference changes, change the state of "public" to be the value stored at that reference
+        
+        // Bind "this" to "this.like (function written below"
     }
+
+    // Method for updating state
     handleChange(value, key) {
         let obj = {};
         obj[key] = value;
         this.setState(obj);
     }
 
-    // Listen to the Firebase Auth state and set the local state.
+    // See: https://github.com/firebase/firebaseui-web-react#using-firebaseauth-with-local-state
     componentDidMount() {
-        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {                        
-            this.setState({ isSignedIn: !!user })            
-            const userRef = this.favoritesRef.child(user.uid);
-            userRef.on("value", (snapshot) => {
-                this.setState({ favorites: snapshot.val() })
-            })            
-           
-        })
-    }
+        // Store the AuthObserver (so you can unauthorize the application)
 
+        // Set the state of `isSignedIn`
+
+        // Make a reference to this particular user in the `favorites/` reference
+
+        // When the value at the "favorites/user.uid" reference changes, 
+        // change the state of "favorites" to be the value stored at that reference
+       
+    }
+    
     // Make sure we un-register Firebase observers when the component unmounts.
     componentWillUnmount() {
-        this.unregisterAuthObserver();
+        
     }
+
+    // Function to save an svg file
     save() {
         const s = new XMLSerializer();
         const svgStr = s.serializeToString(document.querySelector("svg"));
-        const userRef = this.favoritesRef.child(firebase.auth().currentUser.uid)
-        userRef.push({
-            svg: svgStr,
-            time:firebase.database.ServerValue.TIMESTAMP
-        });
+        // Make a reference to this particular user in the `favorites/` reference
+        // Hint: user firebase.auth().currentUser.uid
+        // Push in a  new data object to the reference, including:
+        // - svg: the `svgStr` variable created above
+        // - time: use the timestamp when the data arrives at the databse 
     }
 
     share() {
         const s = new XMLSerializer();
-        const svgStr = s.serializeToString(document.querySelector("svg"));        
-        this.publicRef.push({
-            svg: svgStr,
-            time:firebase.database.ServerValue.TIMESTAMP, 
-            likes:0
-        });
+        const svgStr = s.serializeToString(document.querySelector("svg"));                
+        // Push in a  new data object to the public reference, including:
+        // - svg: the `svgStr` variable created above
+        // - time: use the timestamp when the data arrives at the databse 
+        // - likes: 0       
     }
 
+    // Write a function to like a particular element
     like(svgId) {
-        console.log(this.svgId)
-        const likesRef = this.publicRef.child(svgId + "/likes");
-        likesRef.transaction((d) => d + 1);
+        // Make a reference to the /likes element for the particular svg
+
+        // Issue a transaction to increment the value        
     }
     render() {
-        if (!this.state.isSignedIn) {
-            return (
-                <div>
-                    <h1>My App</h1>
-                    <p>Please sign-in:</p>
-                    <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()} />
-                </div>
-            );
-        }
+        // If the state is not currently signed in, return a simple sign in screen
+        // See: https://github.com/firebase/firebaseui-web-react#using-styledfirebaseauth-with-a-redirect       
         return (
             <Router>
                 <div>
@@ -132,15 +111,19 @@ export class App extends React.Component {
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/">Build</Link></Button>
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/favorites">My Favorites</Link></Button>
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/shared">Shared</Link></Button>
-                            <Button style={{ position: "fixed", right: "10px", color:"white"}} onClick={() => firebase.auth().signOut()}>Sign-out</Button>
+                            {/* Add an onClick event to signOut of the application*/}                            
+                            <Button style={{ position: "fixed", right: "10px", color:"white"}}>Sign-out</Button>
                         </nav>
                     </AppBar>
                 
                     <Switch>
                     <Route path="/favorites">
-                        <SvgDisplay svgs={this.state.favorites}/>                        
+                        {/* Add an SvgDisplay element, passing in this.state.favorites as the svgs property*/}                        
                     </Route>
                     <Route path="/shared">
+                        {/* Add an SvgDisplay element, passing in this.state.public as the svgs property
+                            Also set showLikes to true, and pass in an onClick event to "like" an item
+                        */}                        
                         <SvgDisplay svgs={this.state.public} onClick = {(d) => this.like(d)} showLikes={true}/> 
                     </Route>
                     <Route exact path="/">
@@ -159,8 +142,9 @@ export class App extends React.Component {
                                     <input type="color" onChange={(event) => this.handleChange(event.target.value, "backgroundColor")} />
                                 </div>
                                 <div>
-                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary" onClick={() => this.save()}>Save</Button>                                    
-                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary" onClick={() => this.share()}>Share</Button>
+                                    {/* Add on click evernts to save and share (respectively*/}
+                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary">Save</Button>                                    
+                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary">Share</Button>
                                 </div>
                             </div>
                             <div style={{ display: "inline-block", verticalAlign: "Top" }}>

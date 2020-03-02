@@ -9,7 +9,7 @@ const width = 900;
 export class NoiseField extends React.Component {
     render() {
         return (
-            _.range(this.props.num_lines).map(() => {
+            _.range(this.props.num_lines).map((line) => {
                 let i = 0;
                 let y = Math.random(this.props.seed) * height;
                 let x = Math.random(this.props.seed) * width;
@@ -25,6 +25,7 @@ export class NoiseField extends React.Component {
                     i++;
                 }
                 return (<path
+                    key={line}
                     stroke={this.props.lineColor}
                     strokeWidth="1px"
                     fill="none"
