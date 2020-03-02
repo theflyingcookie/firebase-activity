@@ -1,10 +1,12 @@
 import React from 'react';
-import InlineSVG from 'svg-inline-react';
 import { Controls } from './Controls';
 import { NoiseField } from './NoiseField';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
-import Container from '@material-ui/core/Container'
+import Typography from '@material-ui/core/Typography';
+import ControlSettings from './ControlSettings';
+import SvgDisplay from './SvgDisplay';
+
 import {
   HashRouter as Router,
   Switch,
@@ -45,48 +47,23 @@ const uiConfig = {
 const height = 600;
 const width = 900;
 
-const controlSettings = {
-    num_lines: {
-        label: "Number of Lines",
-        min: 1,
-        max: 500,
-        value: 200
-    },
-    stepLength: {
-        label: "Length of Each Step",
-        min: 1,
-        max: 100,
-        value: 30
-    },
-    max_steps: {
-        label: "Maximum Number of Steps",
-        min: 1,
-        max: 500,
-        value: 200
-    },
-    noiseScale: {
-        label: "Noise Scale",
-        min: 100,
-        max: 3000,
-        value: 1000
-    }
-
-}
 export class App extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            num_lines: controlSettings.num_lines.value,
-            noiseScale: controlSettings.noiseScale.value,
+            num_lines: ControlSettings.num_lines.value,
+            noiseScale: ControlSettings.noiseScale.value,
             seed: 1,
-            max_steps: controlSettings.max_steps.value,
-            stepLength: controlSettings.stepLength.value,
+            max_steps: ControlSettings.max_steps.value,
+            stepLength: ControlSettings.stepLength.value,
             lineColor: "#FF0000",
             backgroundColor: "#000000",
             isSignedIn: false, // Local signed-in state.
             userRef: false
         }
         this.favoritesRef = firebase.database().ref('favorites');
+        this.publicRef = firebase.database().ref('public');
+        this.like = this.like.bind(this);
     }
     handleChange(value, key) {
         let obj = {};
@@ -96,12 +73,14 @@ export class App extends React.Component {
 
     // Listen to the Firebase Auth state and set the local state.
     componentDidMount() {
-        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {            
-            const user_id = user === null ? "none" : user.uid
-            this.setState({ user: user_id, isSignedIn: !!user, userRef: this.favoritesRef.child(user_id) })            
-            const userRef = this.favoritesRef.child(user_id);
+        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged((user) => {                        
+            this.setState({ isSignedIn: !!user })            
+            const userRef = this.favoritesRef.child(user.uid);
             userRef.on("value", (snapshot) => {
                 this.setState({ favorites: snapshot.val() })
+            })            
+            this.publicRef.on("value", (snapshot) => {
+                this.setState({ public: snapshot.val() })
             })
         })
     }
@@ -113,12 +92,28 @@ export class App extends React.Component {
     save() {
         const s = new XMLSerializer();
         const svgStr = s.serializeToString(document.querySelector("svg"));
-        const userRef = this.favoritesRef.child(this.state.user)
+        const userRef = this.favoritesRef.child(firebase.auth().currentUser.uid)
         userRef.push({
-            svg: svgStr
+            svg: svgStr,
+            time:firebase.database.ServerValue.TIMESTAMP
         });
     }
 
+    share() {
+        const s = new XMLSerializer();
+        const svgStr = s.serializeToString(document.querySelector("svg"));        
+        this.publicRef.push({
+            svg: svgStr,
+            time:firebase.database.ServerValue.TIMESTAMP, 
+            likes:0
+        });
+    }
+
+    like(svgId) {
+        console.log(this.svgId)
+        const likesRef = this.publicRef.child(svgId + "/likes");
+        likesRef.transaction((d) => d + 1);
+    }
     render() {
         if (!this.state.isSignedIn) {
             return (
@@ -135,7 +130,7 @@ export class App extends React.Component {
                     <AppBar>
                         <nav>
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/">Build</Link></Button>
-                            <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/favorites">Favorites</Link></Button>
+                            <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/favorites">My Favorites</Link></Button>
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/shared">Shared</Link></Button>
                             <Button style={{ position: "fixed", right: "10px", color:"white"}} onClick={() => firebase.auth().signOut()}>Sign-out</Button>
                         </nav>
@@ -143,36 +138,31 @@ export class App extends React.Component {
                 
                     <Switch>
                     <Route path="/favorites">
-                        <div>
-                            {this.state.favorites && Object.keys(this.state.favorites).map((d) => {
-                                return <Container style={{textAlign:"center"}}><InlineSVG src={this.state.favorites[d].svg} /></Container>
-                            })}
-                        </div>
+                        <SvgDisplay svgs={this.state.favorites}/>                        
                     </Route>
                     <Route path="/shared">
-                        <div>I am on the shared div</div>
+                        <SvgDisplay svgs={this.state.public} onClick = {(d) => this.like(d)} showLikes={true}/> 
                     </Route>
                     <Route exact path="/">
-                        <div style={{ display: "inline-block", margin: "20px", marginTop:"50px"}}>
-                            
+                        <div style={{ display: "inline-block", margin: "20px", marginTop:"50px"}}>                            
                             <div style={{ display: "inline-block", width: "300px" }}>
-                                <Controls onUpdate={this.handleChange.bind(this)} inputs={controlSettings} />
+                                <Typography variant="h6" gutterBottom>Controls</Typography>
+                                <Controls onUpdate={this.handleChange.bind(this)} inputs={ControlSettings} />
 
                                 <div style={{ display: "inline-block" }}>
-                                    <label htmlFor="color">Line Color</label>
+                                    <label htmlFor="color">Line Color: </label>
                                     <input defaultValue={this.state.lineColor} type="color" onChange={(event) => this.handleChange(event.target.value, "lineColor")} />
                                 </div>
 
                                 <div style={{ display: "inline-block" }}>
-                                    <label htmlFor="color">Background Color</label>
+                                    <label htmlFor="color">Background Color: </label>
                                     <input type="color" onChange={(event) => this.handleChange(event.target.value, "backgroundColor")} />
                                 </div>
                                 <div>
-                                    <button onClick={() => this.save()}>Save</button>
+                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary" onClick={() => this.save()}>Save</Button>                                    
+                                    <Button style={{width:"100px", marginBottom:"10px", display:"block"}} variant="contained" color="primary" onClick={() => this.share()}>Share</Button>
                                 </div>
                             </div>
-
-
                             <div style={{ display: "inline-block", verticalAlign: "Top" }}>
                                 <svg height={height} width={width} >
                                     <rect height={height} width={width} fill={this.state.backgroundColor} />
