@@ -16,14 +16,35 @@ import {
 
 // Import firebase and StyledFirebaseAuth
 import firebase from "firebase";
+import StyledFirebaseAuth from 'react-firebaseui/StyledFirebaseAuth';
 
 // Configure Firebase (get configuration from Firebase Console)
-
+const firebaseConfig = {
+    apiKey: "AIzaSyBa2HVSpn5eJhzlBkLWr3wLeR5hE10_-PE",
+    authDomain: "info-340-problem-set-9.firebaseapp.com",
+    databaseURL: "https://info-340-problem-set-9.firebaseio.com",
+    projectId: "info-340-problem-set-9",
+    storageBucket: "info-340-problem-set-9.appspot.com",
+    messagingSenderId: "736700053520",
+    appId: "1:736700053520:web:21d6a0ad32294320133295",
+    measurementId: "G-03M2VKQ7M2"
+};
 
 // Initialize your application with the given configuration
-
+firebase.initializeApp(firebaseConfig);
 
 // Set UI config for sign in (see: https://github.com/firebase/firebaseui-web-react)
+const uiConfig = {
+    // Popup signin flow rather than redirect flow.
+    signInFlow: 'popup',
+    // Redirect to /signedIn after sign in is successful. Alternatively you can provide a callbacks.signInSuccess function.
+    signInSuccessUrl: '',
+    // We will display Google and Facebook as auth providers.
+    signInOptions: [
+      firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+      firebase.auth.FacebookAuthProvider.PROVIDER_ID
+    ]
+};
 
 const height = 600;
 const width = 900;
@@ -59,19 +80,20 @@ export class App extends React.Component {
     // See: https://github.com/firebase/firebaseui-web-react#using-firebaseauth-with-local-state
     componentDidMount() {
         // Store the AuthObserver (so you can unauthorize the application)
-
+        this.unregisterAuthObserver = firebase.auth().onAuthStateChanged(
+            (user) => this.setState({isSignedIn: !!user})
+        );
         // Set the state of `isSignedIn`
 
         // Make a reference to this particular user in the `favorites/` reference
 
         // When the value at the "favorites/user.uid" reference changes, 
         // change the state of "favorites" to be the value stored at that reference
-       
     }
     
     // Make sure we un-register Firebase observers when the component unmounts.
     componentWillUnmount() {
-        
+        this.unregisterAuthObserver();
     }
 
     // Function to save an svg file
@@ -103,6 +125,16 @@ export class App extends React.Component {
     render() {
         // If the state is not currently signed in, return a simple sign in screen
         // See: https://github.com/firebase/firebaseui-web-react#using-styledfirebaseauth-with-a-redirect       
+        if (!this.state.isSignedIn) {
+            return (
+              <div>
+                <h1>My App</h1>
+                <p>Please sign-in:</p>
+                <StyledFirebaseAuth uiConfig={uiConfig} firebaseAuth={firebase.auth()}/>
+              </div>
+            );
+          }        
+        
         return (
             <Router>
                 <div>
@@ -112,7 +144,7 @@ export class App extends React.Component {
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/favorites">My Favorites</Link></Button>
                             <Button><Link style={{ textDecoration: 'none', color:"white"}} to="/shared">Shared</Link></Button>
                             {/* Add an onClick event to signOut of the application*/}                            
-                            <Button style={{ position: "fixed", right: "10px", color:"white"}}>Sign-out</Button>
+                            <Button onClick = {() => firebase.auth().signOut()} style={{ position: "fixed", right: "10px", color:"white"}}>Sign-out</Button>
                         </nav>
                     </AppBar>
                 
